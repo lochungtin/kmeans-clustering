@@ -13,5 +13,6 @@
     "AI"
   ],
   "author": "enigmaoffline",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {}
 }
