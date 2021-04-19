@@ -16,14 +16,16 @@ export class Cluster {
 
     private clusters: number;
 
-    private iterations = 100;
-    private distanceM = Cluster.DIST.EUCLIDEAN;
+    private iterations: number = 100;
+    private distanceM: string = Cluster.DIST.EUCLIDEAN;
 
     private dataDim: number;
     private dataPointNo: number;
     private dataPoints: Array<dataPointInterface> = [];
 
     private centroids: Array<Array<number>> = [];
+
+    private decimalPoints: number = 3;
 
     constructor(clusters: number, dataPoints: Array<Array<number>>) {
         this.clusters = clusters;
@@ -54,6 +56,14 @@ export class Cluster {
      * @returns void
      */
     setDistanceMethod = (distanceM: string) => this.distanceM = distanceM;
+
+    /**
+     * sets the decimal points when rounding the centroid values
+     * only applied on output to maximize precision
+     * @param decimalPoints number of decimals
+     * @returns void
+     */
+    setDecimalPoints = (decimalPoints: number) => this.decimalPoints = decimalPoints;
 
     /**
      * async function for converging clusters
@@ -99,6 +109,8 @@ export class Cluster {
                 this.centroids.push(centroid);
             });
         }
+
+        this.centroids = this.centroids.map(centroid => centroid.map(num => round(num, this.decimalPoints)));
 
         return {
             centroids: this.centroids,
