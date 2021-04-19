@@ -1,7 +1,7 @@
 {
   "name": "@enigmaoffline/kmeans-clustering",
-  "version": "1.0.0",
-  "description": "K-means Clustering for Unsupervised Learning",
+  "version": "1.0.1",
+  "description": "K-Means Clustering for Unsupervised Learning",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "publishConfig": {
