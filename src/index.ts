@@ -1,5 +1,11 @@
 import { euclidean, manhattan } from './utils/distance';
-import { keygen } from './utils/keygen';
+import { round } from './utils/math';
+import { genSequence } from './utils/random';
+
+interface dataPointInterface {
+    data: Array<number>,
+    clusterIndex: number,
+}
 
 export class Cluster {
 
@@ -8,18 +14,28 @@ export class Cluster {
         "MANHATTAN": "MANHATTAN"
     };
 
-    clusters: number;
+    private clusters: number;
 
-    iterations = 100;
-    distanceM = Cluster.DIST.EUCLIDEAN;
+    private iterations = 100;
+    private distanceM = Cluster.DIST.EUCLIDEAN;
 
-    dataPoints: { [key: string]: Array<number> } = {};
-    dataPointNo: number;
+    private dataDim: number;
+    private dataPointNo: number;
+    private dataPoints: Array<dataPointInterface> = [];
+
+    private centroids: Array<Array<number>> = [];
 
     constructor(clusters: number, dataPoints: Array<Array<number>>) {
         this.clusters = clusters;
         this.dataPointNo = dataPoints.length;
-        dataPoints.forEach(pt => this.dataPoints[keygen()] = pt);
+        this.dataDim = dataPoints[0].length;
+
+        dataPoints.forEach(pt => {
+            this.dataPoints.push({
+                data: pt,
+                clusterIndex: -1,
+            });
+        });
     }
 
     /**
@@ -47,50 +63,77 @@ export class Cluster {
      * @returns clusters
      */
     getClusters = async () => {
-        // select random points as centroid
-        let rnArr: number[] = [];
-        for (let i = 0; i < this.dataPointNo; ++i)
-            rnArr.push(i);
-
-        let centroidsIndex: number[] = [];
-        for (let i = 0; i < this.clusters; ++i) {
-            let index = (Math.random() * rnArr.length * 10) % rnArr.length;
-            centroidsIndex.push(rnArr.splice(index, 1)[0]);
-        }
-
-        // assign values to centroid array
-        let keyset = Object.keys(this.dataPoints);
-        let centroids: number[][] = [];
-        centroidsIndex.forEach(index => centroids.push(this.dataPoints[keyset[index]]));
+        // select initial centroids
+        genSequence(this.dataPointNo, this.clusters).forEach(index => this.centroids.push(this.dataPoints[index].data));
 
         // iterate
-        let iterationCounter: number = 0;
-        let changes: boolean = false;
-        while (iterationCounter++ < this.iterations && !changes) {
-            keyset.forEach(key => {
-                let pt: Array<number> = this.dataPoints[key];
+        let changed: boolean = true;
+        let iteration: number = 0;
+        while (iteration++ < this.iterations && changed) {
+            changed = false;
 
-                let nearest: number = -1;
-                let nearestIndex: number = -1;
+            // assign centroid
+            this.dataPoints.forEach(obj => {
+                let nearestCentroid = this.getNearestCentroid(obj.data);
 
-                // find nearest centroid
-                centroids.forEach((centroid, index) => {
-                    let distance: number;
-                    if (this.distanceM === Cluster.DIST.MANHATTAN) 
-                        distance = manhattan(centroid, pt);
-                    else 
-                        distance = euclidean(centroid, pt);
-                    
-                    if (nearest === -1 || distance < nearest) {
-                        nearest = distance;
-                        nearestIndex = index;
-                    }
+                if (obj.clusterIndex != nearestCentroid) {
+                    changed = true;
+                    obj.clusterIndex = nearestCentroid;
+                }
+            });
+
+            // recalculate new centroid
+            this.centroids.length = 0;
+            this.groupDataPoints().forEach(cluster => {
+                let centroid = new Array(this.dataDim).fill(0);
+
+                cluster.forEach(point => {
+                    for (let i = 0; i < this.dataDim; ++i)
+                        centroid[i] += point.data[i];
                 });
 
+                let len = cluster.length;
+                for (let i = 0; i < this.dataDim; ++i)
+                    centroid[i] /= len;
 
+                this.centroids.push(centroid);
             });
         }
 
-        return;
+        return {
+            centroids: this.centroids,
+            clusters: this.groupDataPoints().map(cluster => cluster.map(point => point.data))
+        };
+    }
+
+    private getNearestCentroid = (point: Array<number>) => {
+        let nearestDist: number = -1;
+        let nearestIndex: number = -1;
+
+        this.centroids.forEach((centroid, index) => {
+            let distance: number;
+            if (this.distanceM == Cluster.DIST.MANHATTAN)
+                distance = manhattan(centroid, point);
+            else
+                distance = euclidean(centroid, point);
+
+            if (nearestDist == -1 || distance < nearestDist) {
+                nearestDist = distance;
+                nearestIndex = index;
+            }
+        });
+
+        return nearestIndex;
+    }
+
+    private groupDataPoints = () => {
+        // populate groups with K arrays
+        let groups: Array<Array<dataPointInterface>> = [];
+        for (let i = 0; i < this.clusters; ++i)
+            groups.push(new Array());
+
+        this.dataPoints.forEach(point => groups[point.clusterIndex].push(point));
+
+        return groups;
     }
 }
