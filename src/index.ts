@@ -49,8 +49,8 @@ export class Cluster {
     setLimit = (iterations: number) => this.iterations = iterations;
 
     /**
-     * sets distance calculation method
-     * either Cluster.DIST.EUCILDEAN or Cluster.DIST.MANHATTAN
+     * sets distance calculation method,
+     * either Cluster.DIST.EUCILDEAN or Cluster.DIST.MANHATTAN,
      * default is Cluster.DIST.EUCILDEAN
      * @param distanceM distance calculation method
      * @returns void
@@ -58,7 +58,7 @@ export class Cluster {
     setDistanceMethod = (distanceM: string) => this.distanceM = distanceM;
 
     /**
-     * sets the decimal points when rounding the centroid values
+     * sets the decimal points when rounding the centroid values,
      * only applied on output to maximize precision
      * @param decimalPoints number of decimals
      * @returns void
@@ -70,7 +70,7 @@ export class Cluster {
      * ends when either:
      * 1) values converge
      * 2) iteration count exceeds upper limit
-     * @returns clusters
+     * @returns Promise {{ centroids: [], clusters: [] }}
      */
     getClusters = async () => {
         // select initial centroids

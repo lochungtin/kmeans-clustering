@@ -1,11 +1,18 @@
 {
-  "name": "kmeans-clustering",
+  "name": "@enigmaoffline/kmeans-clustering",
   "version": "1.0.0",
   "description": "K-means Clustering for Unsupervised Learning",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lochungtin/kmeans-clustering.git"
   },
   "keywords": [
     "K-means",
